@@ -10,7 +10,7 @@ import "fmt"
 // 这是一个 Queue 使用的示例
 // 生产者:消费者 = n: 1
 func TestQueue1(t *testing.T ){
-	queue := New()
+	queue := New(1)
 	// 创建1000 个写入协程
 	for i:=0; i < 1000; i++{
 		go func(num int){
@@ -43,8 +43,8 @@ func TestQueue1(t *testing.T ){
 
 // 生产者：消费者 = 1 :n 
 func TestQueue2(t *testing.T ){
-	queue := New()
 	cpuNum := runtime.NumCPU()
+	queue := New(int32(cpuNum))
 	for i:=0; i < cpuNum; i++{
 		go func(num int){
 			for true {
@@ -74,8 +74,8 @@ func TestQueue2(t *testing.T ){
 
 // 生产者：消费者 = m : n
 func TestQueue3(t *testing.T ){
-	queue := New()
 	cpuNum := runtime.NumCPU()
+	queue := New(int32(cpuNum))
 	for i:=0; i < cpuNum; i++{
 		go func(num int){
 			for true {

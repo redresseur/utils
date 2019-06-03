@@ -3,7 +3,6 @@ package structure
 // 参考网址：https://blog.csdn.net/qq_26981997/article/details/78773487
 
 import (
-	"runtime"
 	"sync/atomic"
 	"unsafe"
 )
@@ -16,25 +15,26 @@ type Node struct {
 
 type Queue struct {
 	head , tail *Node
-	isUP atomic.Value
-	single chan struct{}
+	signalCap int32
+	signalCounter int32
+	notify chan struct{}
 }
 
-func New() *Queue {
+func New(signalCap int32) *Queue {
 	q := &Queue{}
 	q.head = &Node{}
 	q.tail = q.head
 
-	q.isUP = atomic.Value{}
-	q.isUP.Store(false)
+	q.signalCap = signalCap
+	q.signalCounter = 0
 
-	q.single = make(chan struct{}, 2 * runtime.NumCPU())
+	q.notify = make(chan struct{}, 2* signalCap)
 
 	return q
 }
 
 func (qu *Queue)Single()<-chan struct{}{
-	return qu.single
+	return qu.notify
 }
 
 func (qu *Queue)Push(x interface{}){
@@ -45,11 +45,11 @@ func (qu *Queue)Push(x interface{}){
 
 func (qu *Queue)SingleUP(force bool, singleNum uint8){
 	if force{
-		qu.single <- struct{}{}
-	} else if ! qu.isUP.Load().(bool){
-		qu.isUP.Store(true)
-		for i := uint8(0) ; i < singleNum; i++ {
-			qu.single <- struct{}{}
+		qu.notify <- struct{}{}
+	} else if atomic.LoadInt32(&qu.signalCounter) < qu.signalCap{
+		for atomic.LoadInt32(&qu.signalCounter) < qu.signalCap {
+			qu.notify <- struct{}{}
+			atomic.AddInt32(&qu.signalCounter, 1)
 		}
 	}
 }
@@ -57,7 +57,7 @@ func (qu *Queue)SingleUP(force bool, singleNum uint8){
 // Note: 这个函数要在处理线程处理完后再去调用
 // 否则会造成写数据阻塞
 func (qu *Queue) SingleDown() {
-	qu.isUP.Store(false)
+	atomic.AddInt32(&qu.signalCounter, -1)
 }
 
 func (qu *Queue)Pop()interface{}  {
@@ -74,5 +74,5 @@ func (qu *Queue)Pop()interface{}  {
 }
 
 func (qu *Queue)Close()  {
-	close(qu.single)
+	close(qu.notify)
 }
