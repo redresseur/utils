@@ -20,7 +20,7 @@ type Queue struct {
 	notify chan struct{}
 }
 
-func New(signalCap int32) *Queue {
+func NewQueue(signalCap int32) *Queue {
 	q := &Queue{}
 	q.head = &Node{}
 	q.tail = q.head
@@ -43,7 +43,7 @@ func (qu *Queue)Push(x interface{}){
 	prev.next = n
 }
 
-func (qu *Queue)SingleUP(force bool, singleNum uint8){
+func (qu *Queue)SingleUP(force bool){
 	if force{
 		qu.notify <- struct{}{}
 	} else if atomic.LoadInt32(&qu.signalCounter) < qu.signalCap{

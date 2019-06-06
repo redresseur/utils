@@ -16,7 +16,7 @@ func TestQueue1(t *testing.T ){
 		go func(num int){
 			for j:=0; j < 100;j++{
 				queue.Push(fmt.Sprintf("[%d] :hello world %d", num, j))
-				queue.SingleUP(false, 1)
+				queue.SingleUP(false)
 			}
 		}(i)
 	}
@@ -63,7 +63,7 @@ func TestQueue2(t *testing.T ){
 
 	for i:=0; i < 1000 * 100; i++{
 		queue.Push(fmt.Sprintf("hello world %d", i))
-		queue.SingleUP(false, uint8(cpuNum))
+		queue.SingleUP(false,)
 	}
 
 	time.Sleep(time.Second * 10)
@@ -98,7 +98,7 @@ func TestQueue3(t *testing.T ){
 		go func(num int){
 			for j:=0; j < 100;j++{
 				queue.Push(fmt.Sprintf("[%d] :hello world %d", num, j))
-				queue.SingleUP(false, uint8(cpuNum))
+				queue.SingleUP(false, )
 			}
 		}(i)
 	}
