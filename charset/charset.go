@@ -3,6 +3,7 @@ package charset
 import (
 	"errors"
 	"regexp"
+	"unicode/utf8"
 )
 
 /*
@@ -40,4 +41,49 @@ func CheckSpecialCharacter(str string)bool{
 	// _ : \u005F
 	re :=regexp.MustCompile("[\u0021-\u002F]|[\u003A-\u0040]|[\u005B-\u0060]|[\u00A0-\u00BF]")
 	return re.MatchString(str)
+}
+
+var ErrNotLetter = errors.New("the word is not letter")
+
+// 小写转大写
+func capitals(c rune) (rune, error){
+	//unicode A-Z 0x0041 ~0x005a a-z 0x0061 ~0x007a
+	if c >= 0x0041 && c <= 0x005a{
+		return c, nil
+	}
+
+	if c >= 0x0061 && c <= 0x007a{
+		return c - 0x0020 , nil
+	}
+
+	return c, ErrNotLetter
+}
+
+// 驼峰格式化
+func HumpFormat(strs... string) (string, error){
+	res := ""
+	var err error
+	if len(strs) == 0{
+		return "", nil
+	}
+
+	// TODO: 过滤掉所有特殊字符
+	for _, str := range strs {
+		data := make([]byte, len(str))
+		for i, c := range str {
+			// 首字符必须转为大写
+			if i == 0{
+				if c, err = capitals(c); err != nil{
+					return "", err
+				}
+			}
+
+			utf8.EncodeRune(data[i:], c)
+		}
+
+		res += string(data)
+	}
+
+
+	return res, nil
 }
