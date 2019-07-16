@@ -4,6 +4,7 @@ import (
 	"errors"
 	"regexp"
 	"unicode/utf8"
+	"strings"
 )
 
 /*
@@ -29,6 +30,8 @@ func CheckPIdRight(pId string) error {
 
 	return nil
 }
+
+var ErrSpecialCharacter = errors.New("Special characters are included")
 
 // special charset check
 func CheckSpecialCharacter(str string)bool{
@@ -60,28 +63,36 @@ func capitals(c rune) (rune, error){
 }
 
 // 驼峰格式化
-func HumpFormat(strs... string) (string, error){
+func CamelCaseFormat(firstWordCapital bool, strs... string) (string, error){
 	res := ""
-	var err error
+	// var err error
 	if len(strs) == 0{
 		return "", nil
 	}
 
 	// TODO: 过滤掉所有特殊字符
-	for _, str := range strs {
-		data := make([]byte, len(str))
-		for i, c := range str {
-			// 首字符必须转为大写
-			if i == 0{
-				if c, err = capitals(c); err != nil{
-					return "", err
-				}
-			}
-
-			utf8.EncodeRune(data[i:], c)
+	for i, str := range strs {
+		if CheckSpecialCharacter(str){
+			return "", ErrSpecialCharacter
 		}
 
-		res += string(data)
+		if !firstWordCapital && i == 0{
+			res += strings.ToLower(str)
+		}else {
+			data := make([]byte, len(str))
+			for i, c := range str {
+				// 首字符必须转为大写
+				if i == 0{
+					//if c, err = capitals(c); err != nil{
+					//	return "", err
+					//}
+					c, _ = capitals(c)
+				}
+
+				utf8.EncodeRune(data[i:], c)
+			}
+			res += string(data)
+		}
 	}
 
 
