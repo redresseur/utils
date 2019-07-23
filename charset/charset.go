@@ -62,6 +62,16 @@ func capitals(c rune) (rune, error){
 	return c, ErrNotLetter
 }
 
+func CamelCaseFormatMust(firstWordCapital bool, str string) string {
+	// 剔除 _ 字符
+	res, err := CamelCaseFormat(firstWordCapital, strings.Split(str, "_")...)
+	if err != nil{
+		panic(err)
+	}
+
+	return res
+}
+
 // 驼峰格式化
 func CamelCaseFormat(firstWordCapital bool, strs... string) (string, error){
 	res := ""
@@ -94,7 +104,6 @@ func CamelCaseFormat(firstWordCapital bool, strs... string) (string, error){
 			res += string(data)
 		}
 	}
-
 
 	return res, nil
 }
