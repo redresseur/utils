@@ -3,8 +3,8 @@ package charset
 import (
 	"errors"
 	"regexp"
-	"unicode/utf8"
 	"strings"
+	"unicode/utf8"
 )
 
 /*
@@ -34,7 +34,7 @@ func CheckPIdRight(pId string) error {
 var ErrSpecialCharacter = errors.New("Special characters are included")
 
 // special charset check
-func CheckSpecialCharacter(str string)bool{
+func CheckSpecialCharacter(str string) bool {
 	//re :=regexp.MustCompile("[~!@#$%^&*(){}|<>\\\\/+\\-【】:\"?'：；‘’“”，。、《》\\]\\[`]")
 	//re :=regexp.MustCompile("[!-/]|[:-@]|[\\[-`]")
 	//re :=regexp.MustCompile("[~!@#$%^&*(){}|<>\\\\/+\\-【】:\"?'：；‘’“”，。、《》\\]\\[`]")
@@ -42,21 +42,21 @@ func CheckSpecialCharacter(str string)bool{
 	// 空格： \u0020
 	// - ：\u002D
 	// _ : \u005F
-	re :=regexp.MustCompile("[\u0021-\u002F]|[\u003A-\u0040]|[\u005B-\u0060]|[\u00A0-\u00BF]")
+	re := regexp.MustCompile("[\u0021-\u002F]|[\u003A-\u0040]|[\u005B-\u0060]|[\u00A0-\u00BF]")
 	return re.MatchString(str)
 }
 
 var ErrNotLetter = errors.New("the word is not letter")
 
 // 小写转大写
-func capitals(c rune) (rune, error){
+func capitals(c rune) (rune, error) {
 	//unicode A-Z 0x0041 ~0x005a a-z 0x0061 ~0x007a
-	if c >= 0x0041 && c <= 0x005a{
+	if c >= 0x0041 && c <= 0x005a {
 		return c, nil
 	}
 
-	if c >= 0x0061 && c <= 0x007a{
-		return c - 0x0020 , nil
+	if c >= 0x0061 && c <= 0x007a {
+		return c - 0x0020, nil
 	}
 
 	return c, ErrNotLetter
@@ -65,7 +65,7 @@ func capitals(c rune) (rune, error){
 func CamelCaseFormatMust(firstWordCapital bool, str string) string {
 	// 剔除 _ 字符
 	res, err := CamelCaseFormat(firstWordCapital, strings.Split(str, "_")...)
-	if err != nil{
+	if err != nil {
 		panic(err)
 	}
 
@@ -73,26 +73,26 @@ func CamelCaseFormatMust(firstWordCapital bool, str string) string {
 }
 
 // 驼峰格式化
-func CamelCaseFormat(firstWordCapital bool, strs... string) (string, error){
+func CamelCaseFormat(firstWordCapital bool, strs ...string) (string, error) {
 	res := ""
 	// var err error
-	if len(strs) == 0{
+	if len(strs) == 0 {
 		return "", nil
 	}
 
 	// TODO: 过滤掉所有特殊字符
 	for i, str := range strs {
-		if CheckSpecialCharacter(str){
+		if CheckSpecialCharacter(str) {
 			return "", ErrSpecialCharacter
 		}
 
-		if !firstWordCapital && i == 0{
+		if !firstWordCapital && i == 0 {
 			res += strings.ToLower(str)
-		}else {
+		} else {
 			data := make([]byte, len(str))
 			for i, c := range str {
 				// 首字符必须转为大写
-				if i == 0{
+				if i == 0 {
 					//if c, err = capitals(c); err != nil{
 					//	return "", err
 					//}
@@ -106,4 +106,36 @@ func CamelCaseFormat(firstWordCapital bool, strs... string) (string, error){
 	}
 
 	return res, nil
+}
+
+func ByteToHexString(data []byte) string {
+	if data == nil {
+		return ""
+	}
+
+	res := []rune{}
+	for _, v := range data {
+		low := v & 0x0f
+
+		lowChar := rune(0)
+		if low > 0x9 {
+			lowChar = rune(low) + 0x37
+		} else {
+			lowChar = rune(low) + 0x30
+		}
+
+		high := v & 0xf0
+		high = high >> 4
+		highChar := rune(0)
+
+		if high > 0x9 {
+			highChar = rune(high) + 0x37
+		} else {
+			highChar = rune(high) + 0x30
+		}
+
+		res = append(res, highChar, lowChar)
+	}
+
+	return string(res)
 }

@@ -12,3 +12,6 @@ func TestCamelCaseFormat(t *testing.T) {
 	//t.Logf("res: %s , err: %v", HumpFormat(a, b))
 }
 
+func TestByteToHexString(t *testing.T) {
+	t.Log(ByteToHexString([]byte{0x1f, 0x2e, 0xf7, 0x69}))
+}
