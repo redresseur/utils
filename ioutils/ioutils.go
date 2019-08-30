@@ -81,6 +81,11 @@ func FileExists(filePath string) (bool, int64, error) {
 	if os.IsNotExist(err) {
 		return false, 0, nil
 	}
+
+	if err != nil{
+		return false, 0, err
+	}
+
 	return true, fileInfo.Size(), err
 }
 
