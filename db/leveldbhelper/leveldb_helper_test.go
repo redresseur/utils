@@ -21,7 +21,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/crypto-url/utils/testutil"
+	"github.com/redresseur/utils/testutil"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 

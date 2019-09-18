@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/crypto-url/utils/testutil"
+	"github.com/redresseur/utils/testutil"
 )
 
 func TestDBBasicWriteAndReads(t *testing.T) {

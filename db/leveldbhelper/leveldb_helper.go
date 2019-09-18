@@ -23,7 +23,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	goleveldbutil "github.com/syndtr/goleveldb/leveldb/util"
-	"github.com/crypto-url/utils"
+	utils "github.com/redresseur/utils/ioutils"
 	"github.com/cloudflare/cfssl/log"
 )
 
