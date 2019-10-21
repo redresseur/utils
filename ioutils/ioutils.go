@@ -12,11 +12,12 @@ import (
 	"sync"
 )
 
-var(
+var (
 	ErrFileIsExists = errors.New("the file had been exists")
+	ErrDirIsExists = errors.New("the directory had been exist")
 )
 
-type MutexIO interface{
+type MutexIO interface {
 	Lock()
 	Unlock()
 	Set(writer interface{})
@@ -27,29 +28,29 @@ type FileMutexIO struct {
 	*os.File
 	*sync.Mutex
 	autLock bool
-	path string
+	path    string
 }
 
-func NewFileMutexIO(autoLock bool) *FileMutexIO  {
+func NewFileMutexIO(autoLock bool) *FileMutexIO {
 	return &FileMutexIO{
-		Mutex: &sync.Mutex{},
-		autLock:autoLock,
+		Mutex:   &sync.Mutex{},
+		autLock: autoLock,
 	}
 }
 
 func (fm *FileMutexIO) Set(writer interface{}) {
-	if fm.autLock{
+	if fm.autLock {
 		fm.Lock()
 		defer fm.Unlock()
 	}
 
-	if fd, isOk := writer.(*os.File); isOk{
+	if fd, isOk := writer.(*os.File); isOk {
 		fm.File = fd
 	}
 }
 
-func (fm *FileMutexIO)Write(p []byte) (n int, err error){
-	if fm.autLock{
+func (fm *FileMutexIO) Write(p []byte) (n int, err error) {
+	if fm.autLock {
 		fm.Lock()
 		fm.Unlock()
 	}
@@ -57,8 +58,8 @@ func (fm *FileMutexIO)Write(p []byte) (n int, err error){
 	return fm.File.Write(p)
 }
 
-func (fm *FileMutexIO)SetPath(path string)  {
-	if fm.autLock{
+func (fm *FileMutexIO) SetPath(path string) {
+	if fm.autLock {
 		fm.Lock()
 		defer fm.Unlock()
 	}
@@ -66,12 +67,12 @@ func (fm *FileMutexIO)SetPath(path string)  {
 	fm.path = path
 }
 
-func (fm *FileMutexIO)Path() string {
-	if fm.autLock{
+func (fm *FileMutexIO) Path() string {
+	if fm.autLock {
 		fm.Lock()
 		defer fm.Unlock()
 	}
-	return  fm.path
+	return fm.path
 }
 
 // FileExists checks whether the given file exists.
@@ -82,7 +83,7 @@ func FileExists(filePath string) (bool, int64, error) {
 		return false, 0, nil
 	}
 
-	if err != nil{
+	if err != nil {
 		return false, 0, err
 	}
 
@@ -91,13 +92,13 @@ func FileExists(filePath string) (bool, int64, error) {
 
 // If the file exists , open it else create it.
 // is Permission not enough , create file in other dir
-func OpenFile(filePath string, other string)(*os.File, error){
+func OpenFile(filePath string, other string) (*os.File, error) {
 
-	fd, err := os.OpenFile(filePath, os.O_APPEND | os.O_CREATE | os.O_RDWR, 0666)
-	if err != nil && os.IsPermission(err) && other != ""{
+	fd, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
+	if err != nil && os.IsPermission(err) && other != "" {
 		_, filePath = filepath.Split(filePath)
 		filePath = filepath.Join(other, filePath)
-		return os.OpenFile(filePath, os.O_APPEND | os.O_CREATE | os.O_RDWR, 0666)
+		return os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
 	}
 
 	return fd, err
@@ -115,7 +116,6 @@ func logDirStatus(msg string, dirPath string) {
 	}
 }
 
-
 // DirEmpty returns true if the dir at dirPath is empty
 func DirEmpty(dirPath string) (bool, error) {
 	f, err := os.Open(dirPath)
@@ -132,6 +132,28 @@ func DirEmpty(dirPath string) (bool, error) {
 	return false, err
 }
 
+// DirEmpty returns true if the dir at dirPath is empty
+func DirExist(dirPath string) (bool, error) {
+	f, err := os.Open(dirPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		log.Debugf("Error while opening dir [%s]: %s", dirPath, err)
+		return false, err
+	}
+
+	defer f.Close()
+	if info, err := f.Stat(); err != nil {
+		return false, err
+	} else if !info.IsDir() {
+		return false, nil
+	}
+
+	return true, err
+}
+
+// returns Missed, Error
 func CreateDirIfMissing(dirPath string) (bool, error) {
 	// if dirPath does not end with a path separator, it leaves out the last segment while creating directories
 	if !strings.HasSuffix(dirPath, "/") {
@@ -139,6 +161,7 @@ func CreateDirIfMissing(dirPath string) (bool, error) {
 	}
 	log.Debugf("CreateDirIfMissing [%s]", dirPath)
 	logDirStatus("Before creating dir", dirPath)
+
 	err := os.MkdirAll(path.Dir(dirPath), 0755)
 	if err != nil {
 		log.Debugf("Error while creating dir [%s]", dirPath)
@@ -148,16 +171,16 @@ func CreateDirIfMissing(dirPath string) (bool, error) {
 	return DirEmpty(dirPath)
 }
 
-func GetFileData(fName string)([]byte, error) {
+func GetFileData(fName string) ([]byte, error) {
 	var path string // 保存音频文件的地址
-	if path = os.Getenv("SPEAK_IN_DIR"); path ==""{
+	if path = os.Getenv("SPEAK_IN_DIR"); path == "" {
 		path = os.Getenv("TEMP")
 	}
 
-	path = filepath.Join(path, "voice" , fName)
-	if fd, err := os.Open(path); err != nil{
+	path = filepath.Join(path, "voice", fName)
+	if fd, err := os.Open(path); err != nil {
 		return nil, err
-	}else {
+	} else {
 		defer fd.Close()
 
 		return ioutil.ReadAll(fd)
@@ -166,32 +189,32 @@ func GetFileData(fName string)([]byte, error) {
 	return nil, nil
 }
 
-func SetFileData(fName string, data []byte, recover bool)(string, error)  {
+func SetFileData(fName string, data []byte, recover bool) (string, error) {
 	// TODO: 生成唯一的 key
 
 	// 保存文件到本地
 	var path string // 保存音频文件的地址
-	if path = os.Getenv("SPEAK_IN_DIR"); path ==""{
+	if path = os.Getenv("SPEAK_IN_DIR"); path == "" {
 		path = os.Getenv("TEMP")
 	}
 
 	path = filepath.Join(path, "voice")
-	if _, err := CreateDirIfMissing(path); err != nil{
+	if _, err := CreateDirIfMissing(path); err != nil {
 		return "", err
 	}
 
-	if isExists, _, err := FileExists(path); err != nil{
+	if isExists, _, err := FileExists(path); err != nil {
 		return "", err
-	}else if isExists && !recover{
+	} else if isExists && !recover {
 		return "", ErrFileIsExists
 	}
 
 	path = filepath.Join(path, fName)
-	if fd, err := os.Create(path); err != nil{
+	if fd, err := os.Create(path); err != nil {
 		return "", err
-	}else {
+	} else {
 		defer fd.Close()
-		if _, err := fd.Write(data); err !=nil{
+		if _, err := fd.Write(data); err != nil {
 			return "", err
 		}
 	}
@@ -200,7 +223,7 @@ func SetFileData(fName string, data []byte, recover bool)(string, error)  {
 }
 
 func TempDir() string {
-	if temp := os.Getenv("TEMP"); temp != ""{
+	if temp := os.Getenv("TEMP"); temp != "" {
 		return temp
 	}
 
