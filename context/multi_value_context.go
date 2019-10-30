@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"math"
+	"sync"
 )
 
 var (
@@ -13,11 +14,11 @@ var (
 
 type MultiValueContext struct {
 	context.Context
-	kvPairs map[interface{}]interface{}
+	kvPairs sync.Map
 }
 
 func (mc *MultiValueContext) Value(key interface{}) interface{} {
-	if v, ok := mc.kvPairs[key]; ok {
+	if v, ok := mc.kvPairs.Load(key); ok {
 		return v
 	}
 
@@ -28,7 +29,7 @@ func (mc *MultiValueContext) Value(key interface{}) interface{} {
 func WithMultiValueContext(parentCtx context.Context, kv ...interface{}) (context.Context, error) {
 	multiCtx := &MultiValueContext{
 		Context: parentCtx,
-		kvPairs: map[interface{}]interface{}{},
+		kvPairs: sync.Map{},
 	}
 	kvLen := len(kv)
 	if kvLen == 0 || math.Mod(float64(kvLen), 2) != 0 {
@@ -36,7 +37,7 @@ func WithMultiValueContext(parentCtx context.Context, kv ...interface{}) (contex
 	}
 
 	for i := 0; i < kvLen; {
-		multiCtx.kvPairs[kv[i]] = kv[i+1]
+		multiCtx.kvPairs.Store(kv[i],kv[i+1])
 		i += 2
 	}
 
@@ -49,6 +50,6 @@ func UpdateMultiValueContext(ctx context.Context, k, v interface{}) error {
 		return ErrNotMultiValueContext
 	}
 
-	multiCtx.kvPairs[k] = v
+	multiCtx.kvPairs.Store(k, v)
 	return nil
 }
