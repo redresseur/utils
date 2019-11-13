@@ -14,10 +14,10 @@ type Node struct {
 }
 
 type Queue struct {
-	head , tail *Node
-	signalCap int32
+	head, tail    *Node
+	signalCap     int32
 	signalCounter int32
-	notify chan struct{}
+	notify        chan struct{}
 }
 
 func NewQueue(signalCap int32) *Queue {
@@ -28,25 +28,28 @@ func NewQueue(signalCap int32) *Queue {
 	q.signalCap = signalCap
 	q.signalCounter = 0
 
-	q.notify = make(chan struct{}, 2* signalCap)
+	q.notify = make(chan struct{}, 2*signalCap)
 
 	return q
 }
 
-func (qu *Queue)Single()<-chan struct{}{
+func (qu *Queue) Single() <-chan struct{} {
 	return qu.notify
 }
 
-func (qu *Queue)Push(x interface{}){
+func (qu *Queue) Push(x interface{}) {
 	n := &Node{data: x}
 	prev := (*Node)(atomic.SwapPointer((*unsafe.Pointer)(unsafe.Pointer(&qu.head)), unsafe.Pointer(n)))
 	prev.next = n
 }
 
-func (qu *Queue)SingleUP(force bool){
-	if force{
-		qu.notify <- struct{}{}
-	} else if atomic.LoadInt32(&qu.signalCounter) < qu.signalCap{
+func (qu *Queue) SingleUP(force bool) {
+	if force {
+		num := cap(qu.notify) - len(qu.notify) + 1
+		for i := 0; i < num; i++ {
+			qu.notify <- struct{}{}
+		}
+	} else if atomic.LoadInt32(&qu.signalCounter) < qu.signalCap {
 		for atomic.LoadInt32(&qu.signalCounter) < qu.signalCap {
 			qu.notify <- struct{}{}
 			atomic.AddInt32(&qu.signalCounter, 1)
@@ -60,7 +63,7 @@ func (qu *Queue) SingleDown() {
 	atomic.AddInt32(&qu.signalCounter, -1)
 }
 
-func (qu *Queue)Pop()interface{}  {
+func (qu *Queue) Pop() interface{} {
 	tail := qu.tail
 	next := (*Node)(atomic.LoadPointer((*unsafe.Pointer)(unsafe.Pointer(&tail.next)))) // acquire
 	if next != nil {
@@ -73,6 +76,6 @@ func (qu *Queue)Pop()interface{}  {
 	return nil
 }
 
-func (qu *Queue)Close()  {
+func (qu *Queue) Close() {
 	close(qu.notify)
 }
