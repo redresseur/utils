@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	logger *flogging.FabricLogger
+	logger *flogging.FabricLogger = flogging.MustGetLogger("grpc.connPool")
 )
 
 const (
@@ -22,6 +22,10 @@ const (
 	Balance       = 10 * time.Second
 	Unavailable   = uint32(1<<32 - 1)
 )
+
+func SetupLogger(flogger *flogging.FabricLogger) {
+	logger = flogger
+}
 
 type AlgorithmGrpcClientPool interface {
 	PickClient() (*grpc.ClientConn, error)
