@@ -237,8 +237,15 @@ func (ap *algorithmGrpcClientPool) BackClient(conn *grpc.ClientConn) {
 
 func (ap *algorithmGrpcClientPool) poolSize() int {
 	ap.l.Lock()
-	ap.l.Unlock()
+	defer ap.l.Unlock()
 	return len(ap.pool)
+}
+
+// 检查是否达到连接数上限
+func (ap *algorithmGrpcClientPool) checkMaxLimit() bool {
+	ap.l.Lock()
+	defer ap.l.Unlock()
+	return len(ap.pool) >= int(ap.maxSize)
 }
 
 func (ap *algorithmGrpcClientPool) updateSignal() {
@@ -249,7 +256,6 @@ func (ap *algorithmGrpcClientPool) updateSignal() {
 }
 
 func (ap *algorithmGrpcClientPool) PickClient() (conn *grpc.ClientConn, err error) {
-	// 通過計數判斷當前conn被多少任務占用
 	ap.l.Lock()
 	cus := uint32(0)
 	for cc, cu := range ap.pool {
@@ -272,10 +278,11 @@ func (ap *algorithmGrpcClientPool) PickClient() (conn *grpc.ClientConn, err erro
 		return
 	}
 
-	if ap.poolSize() < int(ap.maxSize) {
+	// 判斷當前連接數是否達到上限
+	if !ap.checkMaxLimit() {
 		// 建立一条新的连接
 		if conn, err = ap.connFuc(ap.ctx, ap.target); err != nil {
-			logger.Errorf("DialWithHttpTarget err:", err)
+			logger.Errorf("DialWithHttpTarget err: %v", err)
 			return
 		} else {
 			ap.l.Lock()
