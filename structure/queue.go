@@ -63,17 +63,27 @@ func (qu *Queue) SingleDown() {
 	atomic.AddInt32(&qu.signalCounter, -1)
 }
 
-func (qu *Queue) Pop() interface{} {
-	tail := qu.tail
-	next := (*Node)(atomic.LoadPointer((*unsafe.Pointer)(unsafe.Pointer(&tail.next)))) // acquire
-	if next != nil {
-		qu.tail = next
-		v := next.data
-		next.data = nil
-		return v
+func (qu *Queue) Pop() (v interface{}) {
+	for {
+		// 取尾结点指针
+		tail := qu.tail
+
+		// 读取next节点
+		next := tail.next
+		if next == nil {
+			break
+		}
+
+		// 替换尾指针
+		swap := atomic.CompareAndSwapPointer((*unsafe.Pointer)(unsafe.Pointer(&qu.tail)),
+			unsafe.Pointer(tail), unsafe.Pointer(next))
+		if swap {
+			v = next.data
+			break
+		}
 	}
 
-	return nil
+	return v
 }
 
 func (qu *Queue) Close() {
