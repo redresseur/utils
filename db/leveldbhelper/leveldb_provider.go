@@ -20,9 +20,9 @@ import (
 	"bytes"
 	"sync"
 
+	"github.com/cloudflare/cfssl/log"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
-	"github.com/cloudflare/cfssl/log"
 )
 
 var dbNameKeySep = []byte{0x00}
@@ -145,9 +145,9 @@ func (itr *Iterator) Key() []byte {
 	return retrieveAppKey(itr.Iterator.Key())
 }
 
-func (itr *Iterator)Seek(key []byte) bool {
-	seekKey := constructLevelKey(itr.dbName, key);
-	return itr.Iterator.Seek(seekKey);
+func (itr *Iterator) Seek(key []byte) bool {
+	seekKey := constructLevelKey(itr.dbName, key)
+	return itr.Iterator.Seek(seekKey)
 }
 
 func constructLevelKey(dbName string, key []byte) []byte {

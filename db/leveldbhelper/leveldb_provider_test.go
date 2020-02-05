@@ -18,9 +18,8 @@ package leveldbhelper
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"testing"
-
-	"github.com/redresseur/utils/testutil"
 )
 
 func TestDBBasicWriteAndReads(t *testing.T) {
@@ -79,14 +78,14 @@ func TestBatchedUpdates(t *testing.T) {
 
 	for _, db := range dbs {
 		val1, _ := db.Get([]byte("key1"))
-		testutil.AssertEquals(t, string(val1), "value1")
+		assert.Equal(t, string(val1), "value1")
 
 		val2, err2 := db.Get([]byte("key2"))
-		testutil.AssertNoError(t, err2, "")
-		testutil.AssertNil(t, val2)
+		assert.NoError(t, err2, "")
+		assert.Nil(t, val2)
 
 		val3, _ := db.Get([]byte("key3"))
-		testutil.AssertEquals(t, string(val3), "value3")
+		assert.Equal(t, string(val3), "value3")
 	}
 }
 
@@ -105,34 +104,34 @@ func testDBBasicWriteAndReads(t *testing.T, dbNames ...string) {
 	for _, dbName := range dbNames {
 		db := p.GetDBHandle(dbName)
 		val, err := db.Get([]byte("key1"))
-		testutil.AssertNoError(t, err, "")
-		testutil.AssertEquals(t, val, []byte("value1_"+dbName))
+		assert.NoError(t, err, "")
+		assert.Equal(t, val, []byte("value1_"+dbName))
 
 		val, err = db.Get([]byte("key2"))
-		testutil.AssertNoError(t, err, "")
-		testutil.AssertEquals(t, val, []byte("value2_"+dbName))
+		assert.NoError(t, err, "")
+		assert.Equal(t, val, []byte("value2_"+dbName))
 
 		val, err = db.Get([]byte("key3"))
-		testutil.AssertNoError(t, err, "")
-		testutil.AssertEquals(t, val, []byte("value3_"+dbName))
+		assert.NoError(t, err, "")
+		assert.Equal(t, val, []byte("value3_"+dbName))
 	}
 
 	for _, dbName := range dbNames {
 		db := p.GetDBHandle(dbName)
-		testutil.AssertNoError(t, db.Delete([]byte("key1"), false), "")
+		assert.NoError(t, db.Delete([]byte("key1"), false), "")
 		val, err := db.Get([]byte("key1"))
-		testutil.AssertNoError(t, err, "")
-		testutil.AssertNil(t, val)
+		assert.NoError(t, err, "")
+		assert.NotNil(t, val)
 
-		testutil.AssertNoError(t, db.Delete([]byte("key2"), false), "")
+		assert.NoError(t, db.Delete([]byte("key2"), false), "")
 		val, err = db.Get([]byte("key2"))
-		testutil.AssertNoError(t, err, "")
-		testutil.AssertNil(t, val)
+		assert.NoError(t, err, "")
+		assert.NotNil(t, val)
 
-		testutil.AssertNoError(t, db.Delete([]byte("key3"), false), "")
+		assert.NoError(t, db.Delete([]byte("key3"), false), "")
 		val, err = db.Get([]byte("key3"))
-		testutil.AssertNoError(t, err, "")
-		testutil.AssertNil(t, val)
+		assert.NoError(t, err, "")
+		assert.NotNil(t, val)
 	}
 }
 
@@ -144,9 +143,9 @@ func checkItrResults(t *testing.T, itr *Iterator, expectedKeys []string, expecte
 		actualKeys = append(actualKeys, string(itr.Key()))
 		actualValues = append(actualValues, string(itr.Value()))
 	}
-	testutil.AssertEquals(t, actualKeys, expectedKeys)
-	testutil.AssertEquals(t, actualValues, expectedValues)
-	testutil.AssertEquals(t, itr.Next(), false)
+	assert.Equal(t, actualKeys, expectedKeys)
+	assert.Equal(t, actualValues, expectedValues)
+	assert.Equal(t, itr.Next(), false)
 }
 
 func createTestKey(i int) string {

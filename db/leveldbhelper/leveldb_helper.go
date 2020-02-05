@@ -18,13 +18,13 @@ package leveldbhelper
 
 import (
 	"fmt"
-	"sync"
+	"github.com/cloudflare/cfssl/log"
+	utils "github.com/redresseur/utils/ioutils"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	goleveldbutil "github.com/syndtr/goleveldb/leveldb/util"
-	utils "github.com/redresseur/utils/ioutils"
-	"github.com/cloudflare/cfssl/log"
+	"sync"
 )
 
 type dbState int32
@@ -162,4 +162,3 @@ func (dbInst *DB) WriteBatch(batch *leveldb.Batch, sync bool) error {
 	}
 	return nil
 }
-

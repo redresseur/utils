@@ -17,10 +17,9 @@ limitations under the License.
 package leveldbhelper
 
 import (
+	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
-
-	"github.com/redresseur/utils/testutil"
 )
 
 const testDBPath = "/tmp/fabric/ledgertests/util/leveldbhelper"
@@ -55,12 +54,12 @@ func (dbEnv *testDBEnv) cleanup() {
 	if dbEnv.db != nil {
 		dbEnv.db.Close()
 	}
-	testutil.AssertNoError(dbEnv.t, os.RemoveAll(dbEnv.path), "")
+	assert.NoError(dbEnv.t, os.RemoveAll(dbEnv.path), "")
 }
 
 func (providerEnv *testDBProviderEnv) cleanup() {
 	if providerEnv.provider != nil {
 		providerEnv.provider.Close()
 	}
-	testutil.AssertNoError(providerEnv.t, os.RemoveAll(providerEnv.path), "")
+	assert.NoError(providerEnv.t, os.RemoveAll(providerEnv.path), "")
 }
