@@ -2,8 +2,8 @@ package image
 
 import (
 	"errors"
-	"regexp"
 	"github.com/gabriel-vasile/mimetype"
+	"regexp"
 )
 
 // Get returns the type of Image

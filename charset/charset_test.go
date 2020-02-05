@@ -1,6 +1,5 @@
 package charset
 
-
 import "testing"
 
 func TestCamelCaseFormat(t *testing.T) {

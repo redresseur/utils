@@ -3,9 +3,9 @@ module github.com/redresseur/utils
 go 1.12
 
 require (
+	github.com/cloudflare/cfssl v1.4.1
 	github.com/gabriel-vasile/mimetype v0.3.22
 	github.com/golang/protobuf v1.3.2
-	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7 // indirect
 	github.com/redresseur/flogging v0.0.0-20190726045221-fef5ec92d629
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.3.0

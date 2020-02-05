@@ -14,7 +14,7 @@ import (
 
 var (
 	ErrFileIsExists = errors.New("the file had been exists")
-	ErrDirIsExists = errors.New("the directory had been exist")
+	ErrDirIsExists  = errors.New("the directory had been exist")
 )
 
 type MutexIO interface {
@@ -178,15 +178,14 @@ func GetFileData(fName string) ([]byte, error) {
 	}
 
 	path = filepath.Join(path, "voice", fName)
-	if fd, err := os.Open(path); err != nil {
+	fd, err := os.Open(path)
+	if err != nil {
 		return nil, err
 	} else {
 		defer fd.Close()
-
-		return ioutil.ReadAll(fd)
 	}
 
-	return nil, nil
+	return ioutil.ReadAll(fd)
 }
 
 func SetFileData(fName string, data []byte, recover bool) (string, error) {

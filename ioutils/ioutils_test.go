@@ -12,12 +12,12 @@ func TestCreateDirIfMissing(t *testing.T) {
 		t.Skipped()
 	}
 
-	if !assert.Equal(t, missed, true){
+	if !assert.Equal(t, missed, true) {
 		t.Skipped()
 	}
 
 	missed, err = CreateDirIfMissing("./test")
-	if assert.NoError(t, err){
+	if assert.NoError(t, err) {
 		assert.Equal(t, missed, false)
 	}
 

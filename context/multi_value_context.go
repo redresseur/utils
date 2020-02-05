@@ -37,7 +37,7 @@ func WithMultiValueContext(parentCtx context.Context, kv ...interface{}) (contex
 	}
 
 	for i := 0; i < kvLen; {
-		multiCtx.kvPairs.Store(kv[i],kv[i+1])
+		multiCtx.kvPairs.Store(kv[i], kv[i+1])
 		i += 2
 	}
 

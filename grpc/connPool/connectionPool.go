@@ -58,7 +58,7 @@ func (ap *algorithmGrpcClientPool) Release() {
 
 	// 关闭所有剩余链接
 	ap.l.Lock()
-	for c, _ := range ap.pool {
+	for c := range ap.pool {
 		c.Close()
 	}
 	ap.pool = map[*grpc.ClientConn]uint32{}
@@ -140,11 +140,11 @@ func NewConnectionsPool(ctx context.Context, target string, ops ...func(*algorit
 
 // 维持链接在均衡水准
 func (ap *algorithmGrpcClientPool) balance() {
-	for {
+	for run := true; run; {
 		timer := time.After(ap.balanceDuration)
 		select {
 		case <-ap.ctx.Done():
-			return
+			run = false
 		case <-ap.update:
 			{
 			}
