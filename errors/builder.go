@@ -36,7 +36,6 @@ func NewBuilder(Id, Def string, options ...BuilderOptions) *Builder {
 		if b.pkg == "" {
 			pc, _, _, _ := runtime.Caller(1)
 			b.pkg = getPackageName(runtime.FuncForPC(pc).Name())
-
 		}
 	}
 
@@ -60,11 +59,10 @@ func (b *Builder) New(msg string) error {
 
 func (b *Builder) Wrap(err error, args ...interface{}) error {
 	_err := &_error{
-		Id:     b.Id,
-		msg:    b.Definition,
-		err:    err,
-		stacks: callers(),
-		pkg:    b.pkg,
+		Id:  b.Id,
+		msg: b.Definition,
+		err: err,
+		pkg: b.pkg,
 	}
 
 	if 0 != len(args) {

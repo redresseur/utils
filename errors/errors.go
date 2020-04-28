@@ -5,6 +5,7 @@ import (
 	"io"
 	"runtime"
 	"strconv"
+	"strings"
 )
 
 /*
@@ -18,8 +19,9 @@ type Stack []runtime.Frame
 func (st Stack) format(pkg string) string {
 	sts := `[`
 	for _, f := range st {
-		if pkg == getPackageName(f.Func.Name()) {
-			sts += `{file: ` + f.File + ":" + strconv.Itoa(f.Line) + ", func: " + f.Function + "},"
+		sts += `{file: ` + f.File + ":" + strconv.Itoa(f.Line) + ", func: " + f.Function + "},"
+		if 0 == strings.Index(f.Func.Name(), pkg) {
+			break
 		}
 	}
 	sts += `]`
@@ -101,3 +103,6 @@ func ParseID(err error) string {
 
 	return UNKNOWN_ERROR_ID
 }
+
+var ExampleErr = NewBuilder("example", "this is a example", WithTraceStack(true),
+	WithPackage("github.com/redresseur/utils"))
