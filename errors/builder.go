@@ -57,6 +57,14 @@ func (b *Builder) New(msg string) error {
 	return err
 }
 
+func (b *Builder) Error(args ...interface{}) error {
+	return b.New(fmt.Sprint(args...))
+}
+
+func (b *Builder) Errorf(format string, args ...interface{}) error {
+	return b.New(fmt.Sprintf(format, args...))
+}
+
 func (b *Builder) Wrap(err error, args ...interface{}) error {
 	_err := &_error{
 		Id:  b.Id,
@@ -107,4 +115,20 @@ func (b *Builder) ToError() error {
 	}
 
 	return err
+}
+
+func (b *Builder) Call(err error, args ...interface{}) error {
+	if err == nil {
+		return nil
+	}
+
+	return b.Wrap(err, args...)
+}
+
+func (b *Builder) Callf(err error, format string, args ...interface{}) error {
+	if err == nil {
+		return nil
+	}
+
+	return b.Wrapf(err, format, args...)
 }
