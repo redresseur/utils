@@ -19,10 +19,10 @@ type Stack []runtime.Frame
 func (st Stack) format(pkg string) string {
 	sts := `[`
 	for _, f := range st {
-		sts += `{file: ` + f.File + ":" + strconv.Itoa(f.Line) + ", func: " + f.Function + "},"
-		if 0 == strings.Index(f.Func.Name(), pkg) {
-			break
+		if 0 != strings.Index(f.Function, pkg) {
+			continue
 		}
+		sts += `{file: ` + f.File + ":" + strconv.Itoa(f.Line) + ", func: " + f.Function + "},"
 	}
 	sts += `]`
 	return sts

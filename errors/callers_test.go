@@ -19,3 +19,7 @@ func TestCallers1(t *testing.T) {
 	t.Log(file, line, ok)
 	t.Log(runtime.FuncForPC(pc).Name())
 }
+
+func Test_callers(t *testing.T) {
+	t.Log(callers())
+}
