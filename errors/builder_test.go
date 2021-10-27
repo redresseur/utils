@@ -2,6 +2,7 @@ package errors
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 )
 
@@ -50,5 +51,66 @@ func BenchmarkBuilder_New(b *testing.B) {
 	err := builder.New("this is a benchmark test")
 	for i := 0; i < b.N; i++ {
 		_ = fmt.Sprintf("%+v", err)
+	}
+}
+
+func TestBuilder_WithFields(t *testing.T) {
+	type fields struct {
+		Id         string
+		Definition string
+		traceStack bool
+		pkg        string
+		fields     Fields
+	}
+	type args struct {
+		fields Fields
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   *Builder
+	}{
+		{
+			name:   "case1",
+			fields: fields{fields: Fields{"f1": "xxx", "f2": "yyy"}},
+			args: args{
+				fields: Fields{"arg1": "zzz", "arg2": "www"},
+			},
+			want: &Builder{
+				fields: Fields{
+					"f1": "xxx", "f2": "yyy",
+					"arg1": "zzz", "arg2": "www",
+				},
+			},
+		},
+		{
+			name:   "case2",
+			fields: fields{fields: Fields{"f1": "xxx", "f2": "yyy"}},
+			args: args{
+				fields: Fields{"f1": "zzz", "arg2": "www"},
+			},
+			want: &Builder{
+				fields: Fields{
+					"f1":   "zzz",
+					"f2":   "yyy",
+					"arg2": "www",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &Builder{
+				Id:         tt.fields.Id,
+				Definition: tt.fields.Definition,
+				traceStack: tt.fields.traceStack,
+				pkg:        tt.fields.pkg,
+				fields:     tt.fields.fields,
+			}
+			if got := b.WithFields(tt.args.fields); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Builder.WithFields() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }

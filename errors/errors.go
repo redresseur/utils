@@ -34,9 +34,14 @@ type _error struct {
 	err    error `desc:"内置的error"`
 	stacks Stack
 	pkg    string
+	fields Fields
 }
 
 func (e *_error) Error() string {
+	if e.err != nil {
+		return e.err.Error()
+	}
+
 	if e.msg != "" {
 		return e.msg
 	}
@@ -52,6 +57,7 @@ func (e *_error) Format(s fmt.State, verb rune) {
 			if e.msg != "" {
 				msg += ", msg: " + e.msg
 			}
+
 			if e.err != nil {
 				if _err, ok := e.err.(*_error); ok {
 					msg += ", error: "
@@ -62,6 +68,11 @@ func (e *_error) Format(s fmt.State, verb rune) {
 					msg += ", error: " + fmt.Sprintf("%+v", e.err)
 				}
 			}
+
+			if fields := e.fields.String(); len(fields) > 0 {
+				msg += ", " + fields
+			}
+
 			if 0 != len(e.stacks) {
 				msg += ", stack: " + e.stacks.format(e.pkg)
 			}
@@ -76,6 +87,7 @@ func (e *_error) Format(s fmt.State, verb rune) {
 		if e.msg != "" {
 			msg += ", msg: " + e.msg
 		}
+
 		if e.err != nil {
 			if _err, ok := e.err.(*_error); ok {
 				msg += ", error: "
@@ -85,6 +97,10 @@ func (e *_error) Format(s fmt.State, verb rune) {
 			} else {
 				msg += ", error: " + fmt.Sprintf("%v", e.err)
 			}
+		}
+
+		if fields := e.fields.String(); len(fields) > 0 {
+			msg += ", " + fields
 		}
 
 		msg += "}"
