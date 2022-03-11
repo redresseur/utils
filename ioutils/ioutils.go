@@ -2,7 +2,6 @@ package ioutils
 
 import (
 	"errors"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"os"
@@ -10,6 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -227,4 +229,30 @@ func TempDir() string {
 	}
 
 	return "/tmp"
+}
+
+func Fsync(name string, data []byte, perm os.FileMode) error {
+	f, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC|os.O_SYNC, perm)
+	if err != nil {
+		return err
+	}
+	_, err = f.Write(data)
+	if err1 := f.Close(); err1 != nil && err == nil {
+		err = err1
+	}
+	return err
+}
+
+func FsyncWithDealine(name string, data []byte, perm os.FileMode, deadline time.Time) error {
+	f, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC|os.O_SYNC, perm)
+	if err != nil {
+		return err
+	}
+
+	f.SetWriteDeadline(deadline)
+	_, err = f.Write(data)
+	if err1 := f.Close(); err1 != nil && err == nil {
+		err = err1
+	}
+	return err
 }
