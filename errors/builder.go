@@ -118,11 +118,12 @@ func (b *Builder) Errorf(format string, args ...interface{}) error {
 }
 
 func (b *Builder) Wrap(err error, args ...interface{}) error {
+	err, stacks := b.peelStack(err)
 	_err := &_error{
 		Id:     b.Id,
 		msg:    b.Definition,
 		err:    err,
-		stacks: nil,
+		stacks: stacks,
 		pkg:    b.pkg,
 		fields: b.fields.Dup(),
 	}
@@ -131,25 +132,39 @@ func (b *Builder) Wrap(err error, args ...interface{}) error {
 		_err.msg = fmt.Sprint(args...)
 	}
 
-	if b.traceStack {
+	if b.traceStack && len(stacks) == 0 {
 		_err.stacks = callers()
 	}
 
 	return _err
 }
 
+func (b *Builder) peelStack(err error) (error, Stack) {
+	var stacks Stack
+	if err1, ok := err.(*_error); ok {
+		stacks = err1.stacks
+
+		// empty stacks.
+		err1.stacks = nil
+		err = err1
+	}
+
+	return err, stacks
+}
+
 func (b *Builder) Wrapf(err error, format string, args ...interface{}) error {
+	err, stacks := b.peelStack(err)
 	_err := &_error{
 		Id:     b.Id,
 		msg:    b.Definition,
 		err:    err,
-		stacks: nil,
+		stacks: stacks,
 		pkg:    b.pkg,
 		fields: b.fields.Dup(),
 	}
 
 	_err.msg = fmt.Sprintf(format, args...)
-	if b.traceStack {
+	if b.traceStack && len(stacks) == 0 {
 		_err.stacks = callers()
 	}
 
