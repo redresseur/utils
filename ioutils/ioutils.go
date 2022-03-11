@@ -3,6 +3,7 @@ package ioutils
 import (
 	"errors"
 	"io"
+	"io/fs"
 	"io/ioutil"
 	"os"
 	"path"
@@ -54,7 +55,7 @@ func (fm *FileMutexIO) Set(writer interface{}) {
 func (fm *FileMutexIO) Write(p []byte) (n int, err error) {
 	if fm.autLock {
 		fm.Lock()
-		fm.Unlock()
+		defer fm.Unlock()
 	}
 
 	return fm.File.Write(p)
@@ -256,3 +257,12 @@ func FsyncWithDealine(name string, data []byte, perm os.FileMode, deadline time.
 	}
 	return err
 }
+
+// import the functions in ioutil package.
+var (
+	ReadFile  func(string) ([]byte, error)            = ioutil.ReadFile
+	WriteFile func(string, []byte, fs.FileMode) error = ioutil.WriteFile
+	ReadDir   func(string) ([]fs.FileInfo, error)     = ioutil.ReadDir
+	ReadAll   func(r io.Reader) ([]byte, error)       = ioutil.ReadAll
+	NopCloser func(r io.Reader) io.ReadCloser         = ioutil.NopCloser
+)
