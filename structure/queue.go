@@ -21,15 +21,11 @@ type Queue struct {
 }
 
 func NewQueue(signalCap int32) *Queue {
-	q := &Queue{}
-	q.head = &Node{}
+	q := &Queue{head: &Node{}}
 	q.tail = q.head
-
 	q.signalCap = signalCap
 	q.signalCounter = 0
-
 	q.notify = make(chan struct{}, 2*signalCap)
-
 	return q
 }
 
@@ -39,20 +35,19 @@ func (qu *Queue) Single() <-chan struct{} {
 
 func (qu *Queue) Push(x interface{}) {
 	n := &Node{data: x}
-	prev := (*Node)(atomic.SwapPointer((*unsafe.Pointer)(unsafe.Pointer(&qu.head)), unsafe.Pointer(n)))
-	prev.next = n
+	(*Node)(atomic.SwapPointer((*unsafe.Pointer)(unsafe.Pointer(&qu.head)), unsafe.Pointer(n))).next = n
 }
 
 func (qu *Queue) SingleUP(force bool) {
-	if force {
-		num := cap(qu.notify) - len(qu.notify) + 1
-		for i := 0; i < num; i++ {
-			qu.notify <- struct{}{}
-		}
-	} else if atomic.LoadInt32(&qu.signalCounter) < qu.signalCap {
+	if !force {
 		for atomic.LoadInt32(&qu.signalCounter) < qu.signalCap {
 			qu.notify <- struct{}{}
 			atomic.AddInt32(&qu.signalCounter, 1)
+		}
+	} else {
+		num := cap(qu.notify) - len(qu.notify) + 1
+		for i := 0; i < num; i++ {
+			qu.notify <- struct{}{}
 		}
 	}
 }
@@ -63,27 +58,16 @@ func (qu *Queue) SingleDown() {
 	atomic.AddInt32(&qu.signalCounter, -1)
 }
 
-func (qu *Queue) Pop() (v interface{}) {
+func (qu *Queue) Pop() interface{} {
 	for {
-		// 取尾结点指针
-		tail := qu.tail
-
-		// 读取next节点
-		next := tail.next
-		if next == nil {
+		if tail, next := qu.tail, qu.tail.next; next == nil { // 取尾结点指针, 读取next节点
 			break
-		}
-
-		// 替换尾指针
-		swap := atomic.CompareAndSwapPointer((*unsafe.Pointer)(unsafe.Pointer(&qu.tail)),
-			unsafe.Pointer(tail), unsafe.Pointer(next))
-		if swap {
-			v = next.data
-			break
+		} else if atomic.CompareAndSwapPointer((*unsafe.Pointer)(unsafe.Pointer(&qu.tail)),
+			unsafe.Pointer(tail), unsafe.Pointer(next)) { // 替换尾指针
+			return next.data
 		}
 	}
-
-	return v
+	return nil
 }
 
 func (qu *Queue) Close() {

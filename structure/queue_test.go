@@ -1,11 +1,11 @@
 package structure
 
 import (
+	"fmt"
 	"runtime"
 	"sync"
 	"testing"
 )
-import "fmt"
 
 // 这是一个 Queue 使用的示例
 // 生产者:消费者 = n: 1
@@ -252,4 +252,24 @@ func BenchmarkQueue_Push3(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		queue <- i
 	}
+}
+
+func BenchmarkPushAndPop(b *testing.B) {
+	queue := NewQueue(1)
+	for i := 0; i < b.N; i++ {
+		queue.Push(1)
+		queue.Pop()
+	}
+	queue.Close()
+}
+
+func BenchmarkPushAndPopConcurrency(b *testing.B) {
+	queue := NewQueue(1)
+	b.RunParallel(func(b *testing.PB) {
+		for b.Next() {
+			queue.Push(1)
+			queue.Pop()
+		}
+	})
+	queue.Close()
 }
