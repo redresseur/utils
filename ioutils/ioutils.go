@@ -262,17 +262,21 @@ func Copy(src, dst string) error {
 	fileInfo, err := os.Stat(src)
 	if err != nil {
 		return err
+	} else if fileInfo.IsDir() {
+		return errors.New(src + " is directory, not supported.")
 	}
 
 	srcFd, err := os.OpenFile(src, os.O_RDONLY, 0600)
 	if err != nil {
 		return err
 	}
+	defer srcFd.Close()
 
 	dstFd, err := os.OpenFile(dst, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return err
 	}
+	defer dstFd.Close()
 
 	written, err := io.Copy(dstFd, srcFd)
 	if err != nil {
