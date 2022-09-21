@@ -1,9 +1,10 @@
 package ioutils
 
 import (
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateDirIfMissing(t *testing.T) {
@@ -22,4 +23,25 @@ func TestCreateDirIfMissing(t *testing.T) {
 	}
 
 	os.RemoveAll("./test")
+}
+
+func TestCopy(t *testing.T) {
+	err := WriteFile("test.data", []byte("hello world"), 0600)
+	if !assert.NoError(t, err) {
+		t.FailNow()
+	}
+	defer os.Remove("test.data")
+
+	err = Copy("test.data", "test.data.bak")
+	if !assert.NoError(t, err) {
+		t.FailNow()
+	}
+	defer os.Remove("test.data.bak")
+
+	data, err := ReadFile("test.data.bak")
+	if !assert.NoError(t, err) {
+		t.FailNow()
+	}
+
+	assert.Equal(t, []byte("hello world"), data)
 }

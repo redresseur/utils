@@ -258,6 +258,33 @@ func FsyncWithDealine(name string, data []byte, perm os.FileMode, deadline time.
 	return err
 }
 
+func Copy(src, dst string) error {
+	fileInfo, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+
+	srcFd, err := os.OpenFile(src, os.O_RDONLY, 0600)
+	if err != nil {
+		return err
+	}
+
+	dstFd, err := os.OpenFile(dst, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		return err
+	}
+
+	written, err := io.Copy(dstFd, srcFd)
+	if err != nil {
+		return err
+	}
+
+	if written != fileInfo.Size() {
+		return errors.New("copy incomplete")
+	}
+	return nil
+}
+
 // import the functions in ioutil package.
 var (
 	ReadFile  func(string) ([]byte, error)            = ioutil.ReadFile
